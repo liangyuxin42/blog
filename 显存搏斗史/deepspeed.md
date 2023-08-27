@@ -6,9 +6,9 @@
 **partition**
 Stage 1: 切分优化器状态，每个process（gpu）只分到一部分优化器状态也只更新这一部分优化器状态
 
-Stage 2: 切分梯度，每个process只保存自己的优化器对应的梯度
+Stage 2: 切分优化器状态和梯度，每个process只保存自己的优化器状态和对应的梯度
 
-Stage 3: 切分模型参数，每个process分到一部分模型参数
+Stage 3: 切分优化器状态，梯度和模型参数，每个process分到一部分模型参数，也只保存对应的优化器状态和梯度
 
     这和模型并行有什么区别：模型并行是把模型切分到每张卡上，计算前Fetch activation；stage3是把计算前Fetch model weight，然后整合成完整的layer再计算
 
@@ -58,13 +58,19 @@ tensor-slicing, pipeline-parallelism, and data parallelism
     
     - NOTE:
     
-        用list of LayerSpec替代nn.Sequential：
+        - 用list of LayerSpec替代nn.Sequential：
     
             如果用原生pytorch的方式来load模型，在初始化的时候每个worker都需要把整个模型放进cpu，需要的cpu memory就是work数量*模型大小->这谁顶得住啊
     
             LayerSpec可以让每个worker只申请自己需要的模型层，cpu memory就是模型大小
     
-        TiedLayerSpec：处理embedding在LM中存在tie的情况
+        - TiedLayerSpec：处理embedding在LM中存在tie的情况
+
+        - batch-size：
+        
+            chunks/gradient accumulation steps: 每个pipeline stage（一个gpu）会forward多次，再backward多次，以减小PP中的bubble
+
+            因此，一个gpu实际一次forward的batch-size（micro-batche-size）= 全局bs / 数据并行数 /chunks
 
 参考:
 
