@@ -4,6 +4,7 @@
 和数据并行一起使用的显存优化方法，不用改模型代码(改的少)
 
 **partition**
+
 Stage 1: 切分优化器状态，每个process（gpu）只分到一部分优化器状态也只更新这一部分优化器状态
 
 Stage 2: 切分优化器状态和梯度，每个process只保存自己的优化器状态和对应的梯度
@@ -18,6 +19,7 @@ stage2/3可以，通过offload_optimizer/offload_param来offload到cpu上；zero
 
 
 ## 3D Parallelism
+
 tensor-slicing, pipeline-parallelism, and data parallelism
 
 - deepspeed支持tensor并行吗？
